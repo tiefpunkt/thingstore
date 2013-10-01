@@ -1,0 +1,25 @@
+<div>
+	<h3>Users</h3>
+	{% if users %}
+		<ul>
+			{% for user in users %}
+				<li><a href="{% url 'user' user.username %}">{{ user }}</a></li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<p>No users are available.</p>
+	{% endif %}
+</div>
+
+<div>
+	<h3>Things</h3>
+	{% if latest_things %}
+		<ul>
+			{% for thing in latest_things %}
+				<li><a href="{% url 'thing' thing.id %}">{{ thing.name }}</a></li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<p>No things are available.</p>
+	{% endif %}
+</div>

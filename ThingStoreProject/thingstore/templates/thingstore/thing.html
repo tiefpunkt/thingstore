@@ -1,0 +1,8 @@
+<h1>{{ thing.name }}</h1>
+<p>Thing belongs to: {{ thing.owner }}</p>
+<p>{{ thing.description }}</p>
+<ul>
+{% for metric in thing.metric_set.all %}
+	<li>{{ metric.name }} [{{ metric.unit }}]</li>
+{% endfor %}
+</ul>

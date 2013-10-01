@@ -1,0 +1,6 @@
+<h1>{{ user }}</h1>
+<ul>
+{% for thing in user.thing_set.all %}
+	<li><a href="{% url 'thing' thing.id %}">{{ thing.name }}</a></li>
+{% endfor %}
+</ul>
