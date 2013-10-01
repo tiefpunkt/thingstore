@@ -5,14 +5,17 @@ from django.contrib.auth.models import User
 
 class Thing(models.Model):
 	name = models.CharField(max_length=255)
-	location = models.CharField(max_length=255)
-	description = models.TextField()
+	location = models.CharField(max_length=255, blank=True)
+	description = models.TextField(blank=True)
 	owner = models.ForeignKey(User)
+	
+	def __unicode__(self):
+		return self.name;
 
 class Metric(models.Model):
 	thing = models.ForeignKey(Thing)
 	name = models.CharField(max_length=255)
-	unit = models.CharField(max_length=64)
+	unit = models.CharField(max_length=64, blank=True)
 	
 	class Meta:
 		unique_together = (("name","thing"),)
