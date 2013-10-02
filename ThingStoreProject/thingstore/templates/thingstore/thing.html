@@ -1,8 +1,17 @@
-<h1>{{ thing.name }}</h1>
-<p>Thing belongs to: {{ thing.owner }}</p>
-<p>{{ thing.description }}</p>
-<ul>
-{% for metric in thing.metric_set.all %}
-	<li>{{ metric.name }} [{{ metric.unit }}]</li>
-{% endfor %}
-</ul>
+{% extends "thingstore/base.html" %}
+
+{% block content %}
+<div class="row">
+	<div class="col-sm-8">
+		{% for metric in thing.metric_set.all %}
+			<h3>{{ metric.name }}</h3>
+			<div>Unit: {{ metric.unit }}</div>
+		{% endfor %}
+	</div>
+	<div class="col-sm-4">
+		<h2>{{ thing.name }}</h2>
+		<p>Thing belongs to: {{ thing.owner }}</p>
+		<p>{{ thing.description }}</p>
+	</div>
+</div>
+{% endblock %}
