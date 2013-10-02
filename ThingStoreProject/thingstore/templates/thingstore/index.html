@@ -1,25 +1,45 @@
-<div>
-	<h3>Users</h3>
-	{% if users %}
-		<ul>
-			{% for user in users %}
-				<li><a href="{% url 'user' user.username %}">{{ user }}</a></li>
-			{% endfor %}
-		</ul>
-	{% else %}
-		<p>No users are available.</p>
-	{% endif %}
-</div>
+{% extends "thingstore/base.html" %}
 
-<div>
-	<h3>Things</h3>
-	{% if latest_things %}
-		<ul>
-			{% for thing in latest_things %}
-				<li><a href="{% url 'thing' thing.id %}">{{ thing.name }}</a></li>
-			{% endfor %}
-		</ul>
-	{% else %}
-		<p>No things are available.</p>
-	{% endif %}
+{% block content %}
+<div class="row">
+	<div class="col-lg-4">
+		<h2>Users</h2>
+		{% if users %}
+			<ul>
+				{% for user in users %}
+					<li><a href="{% url 'user' user.username %}">{{ user }}</a></li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<p>No users are available.</p>
+		{% endif %}
+	</div>
+	<div class="col-lg-4">
+		<h2>Things</h2>
+		{% if latest_things %}
+			<ul>
+				{% for thing in latest_things %}
+					<li><a href="{% url 'thing' thing.id %}">{{ thing.name }}</a></li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<p>No things are available.</p>
+		{% endif %}
+	</div>
+	<div class="col-lg-4">
+		<h2>Heading</h2>
+		<p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+		<p><a class="btn btn-default" href="#">View details &raquo;</a></p>
+	</div>
 </div>
+{% endblock %}
+
+{% block header %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>ThingStore</h1>
+		<p>The thing where things go to store their stuff.</p>
+		<p><a class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+	</div>
+</div>
+{% endblock %}
