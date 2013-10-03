@@ -13,12 +13,15 @@ class Thing(models.Model):
 		return self.name;
 
 class Metric(models.Model):
-	thing = models.ForeignKey(Thing)
+	thing = models.ForeignKey(Thing, related_name='metrics')
 	name = models.CharField(max_length=255)
 	unit = models.CharField(max_length=64, blank=True)
 	
 	class Meta:
 		unique_together = (("name","thing"),)
+	
+	def __unicode__(self):
+		return self.name;
 
 class Value(models.Model):
 	metric = models.ForeignKey(Metric)
