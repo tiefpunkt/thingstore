@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from datetime import datetime
+from django.utils.timezone import now
 
 # Create your models here.
 
@@ -25,6 +25,7 @@ class Metric(models.Model):
 	def __unicode__(self):
 		return self.name;
 	
+	""" Return most recent value for metric """
 	@property
 	def current_value(self):
 		try:
@@ -32,16 +33,24 @@ class Metric(models.Model):
 		except Value.DoesNotExist:
 			return None
 	
+	""" set current value by adding a new Value with current timestamp"""
 	@current_value.setter
 	def current_value(self, value):
 		v = Value(metric = self, value = value)
 		v.save()
 	
+	""" Return datetime of last update """
+	@property
+	def last_update(self):
+		try:
+			return Value.objects.filter(metric = self)[:1].get().timestamp
+		except Value.DoesNotExist:
+			return None
 
 class Value(models.Model):
 	metric = models.ForeignKey(Metric)
 	value = models.FloatField()
-	timestamp = models.DateTimeField(default=datetime.utcnow())
+	timestamp = models.DateTimeField(default=now)
 	
 	class Meta:
 		ordering = ['-timestamp']

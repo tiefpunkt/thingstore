@@ -33,6 +33,7 @@ class ThingResource(ModelResource):
 
 class MetricResource(ModelResource):
 	current_value = fields.FloatField(attribute='current_value', blank = True, null = True)
+	last_update = fields.DateTimeField(attribute='last_update', blank = True, null = True, readonly = True)
 	class Meta:
 		queryset = Metric.objects.all()
 		excludes = ['id']
