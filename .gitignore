@@ -4,3 +4,4 @@
 *.pyo
 *.swp
 devel.db
+env
