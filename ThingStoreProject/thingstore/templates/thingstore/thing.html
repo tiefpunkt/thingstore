@@ -3,9 +3,10 @@
 {% block content %}
 <div class="row">
 	<div class="col-sm-8">
-		{% for metric in thing.metric_set.all %}
+		{% for metric in thing.metrics.all %}
 			<h3>{{ metric.name }}</h3>
-			<div>Unit: {{ metric.unit }}</div>
+			<div>Current: {{ metric.current_value }}{{ metric.unit }}</div>
+			<div id="graph_{{ metric.id }}" style="height:180px;"></div>
 		{% endfor %}
 	</div>
 	<div class="col-sm-4">
@@ -14,4 +15,24 @@
 		<p>{{ thing.description }}</p>
 	</div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+{% load staticfiles %}
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.js' %}"></script>
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.time.js' %}"></script>
+<script type="text/javascript">
+			$(function() {
+	{% for metric in thing.metrics.all %}
+		var data_{{ metric.id }} = [{% for value in metric.values.all %} [{{value.js_time}},{{value.value}}],{% endfor %}
+		];
+		$.plot("#graph_{{ metric.id }}", [data_{{ metric.id }}], {
+			xaxis: { mode: "time" }, points: { show: true }, lines: { show: true }
+		});
+	{% endfor %}
+
+
+	
+	});
+</script>
 {% endblock %}

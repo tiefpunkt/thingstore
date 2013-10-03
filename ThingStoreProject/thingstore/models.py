@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from django.utils.timezone import now
+import calendar
 
 # Create your models here.
 
@@ -48,9 +49,13 @@ class Metric(models.Model):
 			return None
 
 class Value(models.Model):
-	metric = models.ForeignKey(Metric)
+	metric = models.ForeignKey(Metric, related_name='values')
 	value = models.FloatField()
 	timestamp = models.DateTimeField(default=now)
+	
+	@property
+	def js_time(self):
+		return calendar.timegm(self.timestamp.timetuple())*1000
 	
 	class Meta:
 		ordering = ['-timestamp']
