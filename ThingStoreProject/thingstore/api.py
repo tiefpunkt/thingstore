@@ -20,6 +20,7 @@ class ThingResource(ModelResource):
 		return data_dict
 """ 
 	Nested resources, similar to xively api. doesn't work yet, so let's ignore that
+	http://www.maykinmedia.nl/blog/2012/oct/2/nested-resources-tastypie/
 
 	def prepend_urls(self):
 		return [
@@ -31,6 +32,7 @@ class ThingResource(ModelResource):
 """
 
 class MetricResource(ModelResource):
+	current_value = fields.FloatField(attribute='current_value', blank = True, null = True)
 	class Meta:
 		queryset = Metric.objects.all()
 		excludes = ['id']
