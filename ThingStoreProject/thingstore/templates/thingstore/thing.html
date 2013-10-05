@@ -3,7 +3,7 @@
 {% block content %}
 <div class="row">
 	<div class="col-sm-8">
-		{% for metric in thing.metrics.all %}
+		{% for metric in metrics %}
 			<h3>{{ metric.name }}</h3>
 			<div>Current: {{ metric.current_value }}{{ metric.unit }}</div>
 			<div id="graph_{{ metric.id }}" style="height:180px;"></div>
@@ -23,11 +23,16 @@
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.time.js' %}"></script>
 <script type="text/javascript">
 			$(function() {
-	{% for metric in thing.metrics.all %}
-		var data_{{ metric.id }} = [{% for value in metric.values.all %} [{{value.js_time}},{{value.value}}],{% endfor %}
+	{% for metric in metrics %}
+		var data_{{ metric.id }} = [{% for value in metric.value_dict %} [{{value.js_time}},{{value.value}}],{% endfor %}
 		];
 		$.plot("#graph_{{ metric.id }}", [data_{{ metric.id }}], {
-			xaxis: { mode: "time" }, points: { show: true }, lines: { show: true }
+			xaxis: { mode: "time",
+				min: (new Date()).getTime() - {{ timeframe_hours }}*60*60*1000,
+				max: (new Date()).getTime(),
+			},
+			points: { show: true },
+			lines: { show: true },
 		});
 	{% endfor %}
 
