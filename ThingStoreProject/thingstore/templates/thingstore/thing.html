@@ -21,6 +21,7 @@
 {% load staticfiles %}
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.time.js' %}"></script>
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.tooltip.min.js' %}"></script>
 <script type="text/javascript">
 			$(function() {
 	{% for metric in metrics %}
@@ -33,6 +34,12 @@
 			},
 			points: { show: true },
 			lines: { show: true },
+			grid: { hoverable: true },
+			tooltip: true,
+			tooltipOpts: {
+				content: "<b>%x</b><br>%y{{ metric.unit }}",
+				xDateFormat: "%d-%m-%Y %H:%M:%S",
+			}
 		});
 	{% endfor %}
 
