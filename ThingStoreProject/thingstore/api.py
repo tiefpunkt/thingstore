@@ -4,6 +4,8 @@ from tastypie import fields
 from tastypie.utils.urls import trailing_slash
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest
+from django.shortcuts import get_object_or_404
+from tastypie.bundle import Bundle
 
 from thingstore.models import Thing, Metric, Value
 
@@ -47,7 +49,40 @@ class MetricResource(BaseResource):
 		excludes = ['id']
 		authorization = Authorization()
 		
-		"""detail_uri_name = 'name'"""
+		detail_uri_name = 'name'
+	
+	""" Add nested URL """
+	def prepend_urls(self):
+		return [
+			url(r"^thing/(?P<thing_id>\w)/(?P<resource_name>%s)/(?P<name>[\w\d_.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_metric"),
+		]
+	
+	""" Recognize both nested, and "true" REST style API calls """
+	def dispatch(self, request_type, request, **kwargs):
+		print kwargs
+		try:
+			thing_id = kwargs.pop('thing_id')
+			kwargs['thing'] = get_object_or_404(Thing, pk=thing_id)
+		except:
+			kwargs['id'] = kwargs.pop('name')
+		return super(MetricResource, self).dispatch(request_type, request, **kwargs)
+	
+	""" Resource URI should always point to nested URI """
+	def get_resource_uri(self, bundle_or_obj):
+		kwargs = {
+			'resource_name': self._meta.resource_name,
+		}
+		if isinstance(bundle_or_obj, Bundle):
+			kwargs['name'] = bundle_or_obj.obj.name 
+			kwargs['thing_id'] = bundle_or_obj.obj.thing_id 
+		else:
+			kwargs['name'] = bundle_or_obj.name
+			kwargs['thing_id'] = bundle_or_obj.thing_id
+
+		if self._meta.api_name is not None:
+			kwargs['api_name'] = self._meta.api_name
+
+		return self._build_reverse_url('api_dispatch_metric', kwargs = kwargs)
 
 class ValueResource(BaseResource):
 	class Meta:
