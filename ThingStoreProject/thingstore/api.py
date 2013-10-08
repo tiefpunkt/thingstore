@@ -1,108 +1,50 @@
-from django.conf.urls import url
-from tastypie.resources import ModelResource
-from tastypie import fields
-from tastypie.utils.urls import trailing_slash
-from tastypie.authorization import Authorization
-from tastypie.exceptions import BadRequest
+from django.conf.urls import patterns, url
+from django.http import HttpResponse
+from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
-from tastypie.bundle import Bundle
+import json
+from django.forms.models import model_to_dict
 
-from thingstore.models import Thing, Metric, Value
+from thingstore.models import Thing
 
-class BaseResource(ModelResource):
-
-	# Remove 'meta' part from the response
-	def alter_list_data_to_serialize(self, request, data_dict):
-		if isinstance(data_dict, dict):
-			if 'meta' in data_dict:
-				# Get rid of the "meta".
-				del(data_dict['meta'])
-
-		return data_dict
-
-class ThingResource(BaseResource):
-	metrics = fields.ToManyField('thingstore.api.MetricResource', 'metrics', full=True)
+class APIView(View):
+	filetype = "json"
 	
-	class Meta:
-		queryset = Thing.objects.all()
-		authorization = Authorization()
+	def getJSON(self, request, **kwargs):
+		pass
+	
+	def getCSV(self, request, **kwargs):
+		pass
+	
+	def get(self, request, **kwargs):
+		if self.filetype == "json":
+			data = self.getJSON(request, **kwargs)
+			return HttpResponse(data, content_type="application/json")
+		elif self.filetype == "csv":
+			data = self.getCSV(request, **kwargs)
+			return HttpResponse(data, content_type="text/plain")
+
+class ThingAPI(APIView):
+	def getJSON(self, request, **kwargs):
+		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
+		print self.filetype
+		metrics = thing.metrics.all()
+		data = json.dumps(model_to_dict(thing))
+		return data
+	
+	def getCSV(self, request, **kwargs):
+		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
+		metrics = thing.metrics.all()
+		data = ""
+		for metric in metrics:
+			data = "%s%s,%s\n" % (data, metric.name, metric.current_value)
+		return data
 		
-""" 
-	Nested resources, similar to xively api. doesn't work yet, so let's ignore that
-	http://www.maykinmedia.nl/blog/2012/oct/2/nested-resources-tastypie/
-
-	def prepend_urls(self):
-		return [
-			url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/metrics%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_metric'), name="api_get_metrics"),
-		]
-
-	def dispatch_metric(self, request, **kwargs):
-		return MetricResource().dispatch('list', request, **kwargs)
-"""
-
-class MetricResource(BaseResource):
-	current_value = fields.FloatField(attribute='current_value', blank = True, null = True)
-	last_update = fields.DateTimeField(attribute='last_update', blank = True, null = True, readonly = True)
+def metric(request):
 	
-	class Meta:
-		queryset = Metric.objects.all()
-		excludes = ['id']
-		authorization = Authorization()
-		
-		detail_uri_name = 'name'
+	pass
 	
-	""" Add nested URL """
-	def prepend_urls(self):
-		return [
-			url(r"^thing/(?P<thing_id>\w)/(?P<resource_name>%s)/(?P<name>[\w\d_.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_metric"),
-		]
-	
-	""" Recognize both nested, and "true" REST style API calls """
-	def dispatch(self, request_type, request, **kwargs):
-		print kwargs
-		try:
-			thing_id = kwargs.pop('thing_id')
-			kwargs['thing'] = get_object_or_404(Thing, pk=thing_id)
-		except:
-			kwargs['id'] = kwargs.pop('name')
-		return super(MetricResource, self).dispatch(request_type, request, **kwargs)
-	
-	""" Resource URI should always point to nested URI """
-	def get_resource_uri(self, bundle_or_obj):
-		kwargs = {
-			'resource_name': self._meta.resource_name,
-		}
-		if isinstance(bundle_or_obj, Bundle):
-			kwargs['name'] = bundle_or_obj.obj.name 
-			kwargs['thing_id'] = bundle_or_obj.obj.thing_id 
-		else:
-			kwargs['name'] = bundle_or_obj.name
-			kwargs['thing_id'] = bundle_or_obj.thing_id
-
-		if self._meta.api_name is not None:
-			kwargs['api_name'] = self._meta.api_name
-
-		return self._build_reverse_url('api_dispatch_metric', kwargs = kwargs)
-
-class ValueResource(BaseResource):
-	class Meta:
-		queryset = Value.objects.all()
-		excludes = ['id']
-		authorization = Authorization()
-		include_resource_uri = False
-		filtering = {
-			'timestamp': ['exact', 'range', 'lt', 'lte', 'gte', 'gt'],
-			}
-        
-	def build_filters(self, filters=None):
-		if 'metric' not in filters:
-			raise BadRequest("missing metric param") # or maybe create your own exception
-		return super(ValueResource, self).build_filters(filters)
-	
-	def alter_list_data_to_serialize(self, request, data_dict):
-		if isinstance(data_dict, dict):
-			if 'objects' in data_dict:
-				# Get rid of the "meta".
-				return data_dict['objects']
-
-		return data_dict
+urls = patterns('',
+	url(r'^thing/(?P<thing_id>\w+).json', ThingAPI.as_view(filetype="json")),
+	url(r'^thing/(?P<thing_id>\w+).csv', ThingAPI.as_view(filetype="csv")),
+)
