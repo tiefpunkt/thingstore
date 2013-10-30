@@ -15,7 +15,7 @@ class APIView(View):
 	
 	def getCSV(self, request, **kwargs):
 		pass
-	
+
 	def get(self, request, **kwargs):
 		if self.filetype == "json":
 			data = self.getJSON(request, **kwargs)
@@ -27,10 +27,16 @@ class APIView(View):
 class ThingAPI(APIView):
 	def getJSON(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
-		print self.filetype
+		
+		data = model_to_dict(thing)
+		
+		data['metrics'] = {}
 		metrics = thing.metrics.all()
-		data = json.dumps(model_to_dict(thing))
-		return data
+		for metric in metrics:
+			data['metrics'][metric.name] = model_to_dict(metric,fields=['name','unit'])
+			data['metrics'][metric.name]['current_value'] = metric.current_value
+			data['metrics'][metric.name]['current_value'] = metric.current_value
+		return json.dumps(data)
 	
 	def getCSV(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
