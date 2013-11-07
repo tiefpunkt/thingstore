@@ -11,16 +11,20 @@ from thingstore.models import Thing
 class APIView(View):
 	filetype = "json"
 
+	# Required because of django's csrf protection
 	@csrf_exempt
 	def dispatch(self, *args, **kwargs):
 		return super(APIView, self).dispatch(*args, **kwargs)
 	
+	# abstract call when a json is requested
 	def getJSON(self, request, **kwargs):
 		pass
 	
+	# abstract call when a csv is requested
 	def getCSV(self, request, **kwargs):
 		pass
 
+	# dispatches GET requests depending on requested file type
 	def get(self, request, **kwargs):
 		if self.filetype == "json":
 			data = self.getJSON(request, **kwargs)
@@ -29,12 +33,15 @@ class APIView(View):
 			data = self.getCSV(request, **kwargs)
 			return HttpResponse(data, content_type="text/plain")
 
+	# abstract call when a JSON is sent as a PUT request
 	def putJSON(self, request, **kwargs):
 		pass
 	
+	# abstract call when a CSV is sent as a PUT request
 	def putCSV(self, request, **kwargs):
 		pass
 
+	# dispatches PUT requests
 	def put(self, request, **kwargs):
 		if self.filetype == "json":
 			data = self.putJson(request, **kwargs)
@@ -43,7 +50,10 @@ class APIView(View):
 			data = self.putCSV(request, **kwargs)
 			return HttpResponse(data, content_type="text/plain")
 
+# API resource of Things
 class ThingAPI(APIView):
+	
+	# Return a JSON describing the thing, with current values of the metrics
 	def getJSON(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
 		
@@ -57,6 +67,7 @@ class ThingAPI(APIView):
 			data['metrics'][metric.name]['current_value'] = metric.current_value
 		return json.dumps(data)
 	
+	# Return a CSV with current values of all metrics of the thing
 	def getCSV(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
 		metrics = thing.metrics.all()
@@ -64,7 +75,8 @@ class ThingAPI(APIView):
 		for metric in metrics:
 			data = "%s%s,%s\n" % (data, metric.name, metric.current_value)
 		return data
-		
+	
+	# Update a thing's metrics. Eventually, at least.
 	def putCSV(self, request, **kwargs):
 		body = request.body
 		lines = body.split('\n')
