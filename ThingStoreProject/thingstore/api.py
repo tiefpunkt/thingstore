@@ -1,11 +1,11 @@
 from django.conf.urls import patterns, url
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
 import json, csv
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 
 from thingstore.models import Thing
 
@@ -44,22 +44,36 @@ class APIView(View):
 
 	# dispatches PUT requests
 	def put(self, request, **kwargs):
-		try: 
-			apikey = request.GET['apikey']
-			user = authenticate(apikey=apikey)
-		except:
-			user = None
-		if user is not None:
-			print "Authenticated Request"
-		else:
-			print "No authentication"
 		
+		# API Key authentication
+		# Only if not already authenticated by some other means
+		used_apikey = False
+		if not request.user.is_authenticated():
+			try: 
+				apikey = request.GET['apikey']
+				user = authenticate(apikey=apikey)
+			except:
+				user = None
+			if user is not None:
+				if user.is_active:
+					login(request, user)
+					used_apikey = True
+				else:
+					return HttpResponseForbidden("Your user is disabled.\n", content_type="text/plain")
+			else:
+				return HttpResponseForbidden("You need to provide a valid API key to access this resource.\n", content_type="text/plain")
+
+		response = None
 		if self.filetype == "json":
-			data = self.putJson(request, **kwargs)
-			return HttpResponse(data, content_type="application/json")
+			response = self.putJson(request, **kwargs)
 		elif self.filetype == "csv":
-			data = self.putCSV(request, **kwargs)
-			return HttpResponse(data, content_type="text/plain")
+			response = self.putCSV(request, **kwargs)
+		
+		# logout if logged in by apikey
+		if (used_apikey):
+			logout(request)
+		
+		return response
 
 # API resource of Things
 class ThingAPI(APIView):
@@ -89,6 +103,11 @@ class ThingAPI(APIView):
 	
 	# Update a thing's metrics. Eventually, at least.
 	def putCSV(self, request, **kwargs):
+		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
+
+		if thing.owner != request.user:
+			return HttpResponseForbidden("Your user is not allowed to access this thing.\n", content_type="text/plain")
+
 		body = request.body
 		lines = body.split('\n')
 		data = []
@@ -97,8 +116,12 @@ class ThingAPI(APIView):
 			if len(line_data) != 2:
 				return "ERROR\n"
 			data.append(line_data)
-		print data
-		return "troet\n"
+		writeToMetrics(thing, data)
+		return HttpResponse(data, content_type="text/plain")
+		
+	def writeToMetrics(thing, data):
+		for metric in data:
+			pass
 		
 def metric(request):
 	
