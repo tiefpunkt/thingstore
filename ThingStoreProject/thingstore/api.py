@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 import json, csv
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate
 
 from thingstore.models import Thing
 
@@ -43,6 +44,16 @@ class APIView(View):
 
 	# dispatches PUT requests
 	def put(self, request, **kwargs):
+		try: 
+			apikey = request.GET['apikey']
+			user = authenticate(apikey=apikey)
+		except:
+			user = None
+		if user is not None:
+			print "Authenticated Request"
+		else:
+			print "No authentication"
+		
 		if self.filetype == "json":
 			data = self.putJson(request, **kwargs)
 			return HttpResponse(data, content_type="application/json")

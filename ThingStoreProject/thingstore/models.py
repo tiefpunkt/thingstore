@@ -60,3 +60,7 @@ class Value(models.Model):
 	class Meta:
 		ordering = ['-timestamp']
 	
+class APIKey(models.Model):
+	token = models.CharField(max_length=255, unique = True)
+	user = models.ForeignKey(User, related_name='apikeys')
+	
