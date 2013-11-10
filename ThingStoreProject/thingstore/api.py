@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
 import json, csv
@@ -108,20 +108,40 @@ class ThingAPI(APIView):
 		if thing.owner != request.user:
 			return HttpResponseForbidden("Your user is not allowed to access this thing.\n", content_type="text/plain")
 
-		body = request.body
+		body = request.body.strip()
 		lines = body.split('\n')
 		data = []
 		for line in lines:
-			line_data = line.split(',')
+			line_data = line.strip().split(',')
 			if len(line_data) != 2:
-				return "ERROR\n"
+				return HttpResponseBadRequest("ERROR\n", content_type="text/plain")
 			data.append(line_data)
-		writeToMetrics(thing, data)
-		return HttpResponse(data, content_type="text/plain")
 		
-	def writeToMetrics(thing, data):
+		try:
+			self.writeToMetrics(thing, data)
+		except Exception as err:
+			return  HttpResponseBadRequest(unicode(err) + "\n", content_type="text/plain")
+
+		return HttpResponse(data, content_type="text/plain")
+
+	def writeToMetrics(self, thing, data):
+		# Check whether ALL metrics exist, before updating them
+		# TODO: pretty DB heavy, might need a better solutions.
+		# maybe we can solve this with DB transactions.
+		# See https://docs.djangoproject.com/en/dev/topics/db/transactions/
+		# Check values as well.
 		for metric in data:
-			pass
+			if thing.metrics.filter(name = metric[0]).count() <> 1:
+				raise Exception("Metric \"" + metric[0] + "\" does not exist.")
+			
+			try:
+				float(metric[1])
+			except ValueError:
+				# Not a numeric value. No likey
+				raise Exception("\"" + metric[1] + "\" is not a valid value for metric \"" + metric[0] + "\".")
+
+		for metric in data:
+			thing.metrics.get(name=metric[0]).current_value = metric[1]
 		
 def metric(request):
 	
