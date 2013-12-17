@@ -4,6 +4,7 @@ from thingstore import views,api
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
+    url(r'^login$', views.login_form, name='login'),
     url(r'^thing/(?P<thing_id>\d+)/$', views.thing, name='thing'),
     url(r'^user/(?P<username>\w+)/$', views.user, name='user'),
     

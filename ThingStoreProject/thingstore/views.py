@@ -1,10 +1,13 @@
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, render_to_response
 from django.utils.timezone import now
 from datetime import timedelta
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django.core.context_processors import csrf
 
 from thingstore.models import Thing, Value
-from django.contrib.auth.models import User
+
 
 """ Index page. Contains lists of users and things """
 def index(request):
@@ -58,3 +61,28 @@ def thing(request, thing_id):
 def user(request, username):
 	user = get_object_or_404(User, username__iexact=username)
 	return render(request, 'thingstore/user.html', {'user': user})
+	
+def login_form(request):
+	state = "Please log in below..."
+	username = password = ''
+	parameters = {}
+	parameters.update(csrf(request))
+	
+	if request.POST:
+		username = request.POST.get('username')
+		password = request.POST.get('password')
+
+		user = authenticate(username=username, password=password)
+		if user is not None:
+			if user.is_active:
+				login(request, user)
+				state = "You're successfully logged in!"
+			else:
+				state = "Your account is not active, please contact the site admin."
+		else:
+			state = "Your username and/or password were incorrect."
+	
+	parameters['state'] = state;
+	parameters['username'] = username;
+	
+	return render_to_response('thingstore/login.html',parameters)

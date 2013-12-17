@@ -1,0 +1,24 @@
+{% extends "thingstore/base.html" %}
+
+{% block content %}
+<div class="row">
+	<div class="col-sm-4">	</div>
+	<div class="col-sm-4">
+		<h2>Login</h2>
+		{{ state }}
+		<form action="/login" method="post">
+			{% csrf_token %} 
+			{% if next %}
+			<input type="hidden" name="next" value="{{ next }}" />
+			{% endif %}
+			username:
+			<input type="text" name="username" value="{{ username}}" /><br />
+			password:
+			<input type="password" name="password" value="" /><br />
+
+			<input type="submit" value="Log In" />
+		</form>
+	</div>
+	<div class="col-sm-4">	</div>
+</div>
+{% endblock %}

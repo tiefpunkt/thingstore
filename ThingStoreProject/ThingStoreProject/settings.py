@@ -164,3 +164,6 @@ LOGGING = {
 
 AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
 	'thingstore.auth.APIKeyBackend',)
+
+TEMPLATE_CONTEXT_PROCESSORS = ('django.core.context_processors.request',
+	'django.contrib.auth.context_processors.auth',)
