@@ -6,7 +6,7 @@
 	<div class="col-sm-4">
 		<h2>Login</h2>
 		{{ state }}
-		<form action="/login" method="post">
+		<form action="/login/" method="post">
 			{% csrf_token %} 
 			{% if next %}
 			<input type="hidden" name="next" value="{{ next }}" />

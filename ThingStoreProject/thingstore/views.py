@@ -1,10 +1,11 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.utils.timezone import now
 from datetime import timedelta
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.context_processors import csrf
+from django.core.urlresolvers import reverse
 
 from thingstore.models import Thing, Value
 
@@ -62,7 +63,7 @@ def user(request, username):
 	user = get_object_or_404(User, username__iexact=username)
 	return render(request, 'thingstore/user.html', {'user': user})
 	
-def login_form(request):
+def login_view(request):
 	state = "Please log in below..."
 	username = password = ''
 	parameters = {}
@@ -77,12 +78,17 @@ def login_form(request):
 			if user.is_active:
 				login(request, user)
 				state = "You're successfully logged in!"
+				return HttpResponseRedirect(reverse('thingstore.views.index'))
 			else:
 				state = "Your account is not active, please contact the site admin."
 		else:
 			state = "Your username and/or password were incorrect."
 	
-	parameters['state'] = state;
-	parameters['username'] = username;
+	parameters['state'] = state
+	parameters['username'] = username
 	
 	return render_to_response('thingstore/login.html',parameters)
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse('thingstore.views.index'))
