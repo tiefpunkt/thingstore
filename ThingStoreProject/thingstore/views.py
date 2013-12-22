@@ -64,7 +64,7 @@ def user(request, username):
 	return render(request, 'thingstore/user.html', {'user': user})
 	
 def login_view(request):
-	state = "Please log in below..."
+	#state = "Please log in below..."
 	username = password = ''
 	parameters = {}
 	parameters.update(csrf(request))
@@ -77,14 +77,13 @@ def login_view(request):
 		if user is not None:
 			if user.is_active:
 				login(request, user)
-				state = "You're successfully logged in!"
 				return HttpResponseRedirect(reverse('thingstore.views.index'))
 			else:
-				state = "Your account is not active, please contact the site admin."
+				parameters['alert'] = "Your account is not active, please contact the site admin."
 		else:
-			state = "Your username and/or password were incorrect."
+			parameters['alert'] = "Your username and/or password were incorrect."
 	
-	parameters['state'] = state
+
 	parameters['username'] = username
 	
 	return render_to_response('thingstore/login.html',parameters)
