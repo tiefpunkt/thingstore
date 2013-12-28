@@ -17,6 +17,11 @@ def index(request):
 	context = {'latest_things': latest_things, 'users': users}
 	return render(request, 'thingstore/index.html', context)
 
+""" About page. Static """
+def about(request):
+	context = {}
+	return render(request, 'thingstore/about.html', context)
+
 """ Thing detail page """
 def thing(request, thing_id):
 	timeframe_hours = 12

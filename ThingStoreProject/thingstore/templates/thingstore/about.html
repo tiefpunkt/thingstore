@@ -1,0 +1,18 @@
+{% extends "thingstore/base.html" %}
+
+{% block content %}
+<div class="row">
+	<div class="col-sm-8">
+		<h2>About ThingStore</h2>
+		<p>ThingStore is an open source project, allowing you to store and visualize numerical data from all kinds of sources. Connect sensors, monitor your computers, or track your finances. Using its open API, you can push data to ThingStore, visualize it in pretty graphs, and later extract it again, to do other fun stuff with it. Eventually, you will be able to set triggers directly from within ThingStore, and use them to execute certain actions whenever your data changes in a defined way. But we're not quite that yet.</p>
+		
+		<h3>Structure</h3>
+		<p>In ThingStore, data is grouped by Things. Each thing can have multiple metrics, which define one timeseries of numerical data points. A thing always belongs to a single user. Additionally, each user can define multiple API keys, to access the ThingStore API without having to provide username and password. For now, all API keys are created equal, but eventually, users will be able to set different permissions for different API keys.</p>
+	</div>
+	<div class="col-sm-4">
+		<h2>Open Source</h2>
+		<p>ThingStore is released under the MIT open source license. Feel free to <a href="https://github.com/tiefpunkt/thingstore">contribute</a>, and make ThingStore more awesome.</p>
+		<p>If your find a bug or are missing a feature, feel free to fork our <a href="https://github.com/tiefpunkt/thingstore">GitHub Repository</a>, or leave us a note in form of an <a href="https://github.com/tiefpunkt/thingstore/issues/new">issue</a>.</p>
+	</div>
+</div>
+{% endblock %}
