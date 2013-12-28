@@ -24,7 +24,7 @@ def about(request):
 
 """ Thing detail page """
 def thing(request, thing_id):
-	timeframe_hours = 12
+	timeframe_hours = 1
 	
 	# Create Querysets
 	thing = get_object_or_404(Thing, pk=thing_id)
