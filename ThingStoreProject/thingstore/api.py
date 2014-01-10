@@ -89,7 +89,7 @@ class ThingAPI(APIView):
 		for metric in metrics:
 			data['metrics'][metric.name] = model_to_dict(metric,fields=['name','unit'])
 			data['metrics'][metric.name]['current_value'] = metric.current_value
-			data['metrics'][metric.name]['current_value'] = metric.current_value
+			data['metrics'][metric.name]['id'] = metric.id
 		return json.dumps(data)
 	
 	# Return a CSV with current values of all metrics of the thing
@@ -142,7 +142,38 @@ class ThingAPI(APIView):
 
 		for metric in data:
 			thing.metrics.get(name=metric[0]).current_value = metric[1]
+
+
+
+class MetricAPI(APIView):	
+	# Return a JSON describing the thing, with current values of the metrics
+	def getJSON(self, request, **kwargs):
+		from django.utils.timezone import now
+		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
+		metricID = kwargs["metric_id"]
 		
+		tdic = model_to_dict(thing)
+		
+		rdata = {}
+		metric = thing.metrics.filter(pk=metricID)[0]
+		#for metric in metrics:
+		
+		rdata['name'] = metric.name
+		rdata['current_value'] = metric.current_value
+		rdata['id'] = metric.id
+
+		timeframe = 12*60*60;   #12h default
+		values = metric.getValues(int(now().strftime('%s')) - timeframe)
+
+		rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+		rdata['thing'] = thing.name
+		rdata['thing_id'] = thing.id	
+		
+
+		
+
+		return json.dumps(rdata)
+	
 def metric(request):
 	
 	pass
@@ -150,4 +181,5 @@ def metric(request):
 urls = patterns('',
 	url(r'^thing/(?P<thing_id>\w+).json', ThingAPI.as_view(filetype="json")),
 	url(r'^thing/(?P<thing_id>\w+).csv', ThingAPI.as_view(filetype="csv")),
+	url(r'^thing/(?P<thing_id>\w+)/(?P<metric_id>\w+).json', MetricAPI.as_view(filetype="json")),
 )
