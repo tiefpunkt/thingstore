@@ -1,0 +1,56 @@
+{% extends "thingstore/base.html" %}
+
+{% block content %}
+	<div class="row">
+		<div class="col-sm-6 col-sm-offset-3">
+			<h2>Login</h2>
+			<form method="POST" action="" accept-charset="UTF-8" class="form-horizontal" role="form">
+				{% csrf_token %}
+				
+				{% if form.non_field_errors %}
+					<div class="alert alert-danger alert-dismissable">
+						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+						{{ form.non_field_errors|join:", " }}
+					</div>
+				{% endif %}
+				
+				<div class="form-group">
+					<label for="{{ form.username.id_for_label }}" class="col-sm-4 control-label">{{ form.username.label }}</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" placeholder="{{ form.username.label }}" value="{{ form.username.value }}">
+					</div>
+					
+					{% if form.username.errors %}
+						<div class="alert alert-danger alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+							{{ form.username.errors|join:", " }}
+						</div>
+					{% endif %}
+				</div>
+				
+				<div class="form-group">					
+					<label for="{{ form.password.id_for_label }}" class="col-sm-4 control-label">{{ form.password.label }}</label>
+					<div class="col-sm-8">
+						<input type="password" class="form-control" id="{{ form.password.id_for_label }}" name="{{ form.password.html_name }}" placeholder="{{ form.password.label }}">
+					</div>
+					
+					{% if form.password.errors %}
+						<div class="alert alert-danger alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+							{{ form.password.errors|join:", " }}
+						</div>
+					{% endif %}
+				</div>
+				
+				<div class="form-group">
+					<div class="col-sm-offset-4 col-sm-8">
+						<button type="submit" class="btn btn-primary">Sign in</button>
+					</div>
+				</div>
+				
+			</form>
+			
+			<p>If you don't have an account, you can <a href="/accounts/register/">sign up</a> for one.
+		</div>
+	</div>
+{% endblock %}
