@@ -12,7 +12,7 @@
 	<div class="col-sm-4">
 		<h2>{{ thing.name }}</h2>
 		<p>Thing belongs to: <a href="{% url 'user' thing.owner %}">{{ thing.owner }}</a></p>
-		<p>{{ thing.description }}</p>
+		<p>{{ thing.description|linebreaks }}</p>
 		<p>Location: {{ thing.location }}</p>
 	</div>
 </div>
