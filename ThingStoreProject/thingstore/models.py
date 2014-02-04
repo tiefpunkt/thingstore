@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from django.utils.timezone import now
-import calendar
+from django.utils.timezone import now, utc
+import calendar, datetime
+
 
 # Create your models here.
 
@@ -47,6 +48,15 @@ class Metric(models.Model):
 			return Value.objects.filter(metric = self)[:1].get().timestamp
 		except Value.DoesNotExist:
 			return None
+
+	def getValues(self, timestart, timeend=float(now().strftime('%s'))):
+		dtstart = datetime.datetime.fromtimestamp(timestart).replace(tzinfo=utc)
+		dtend = datetime.datetime.fromtimestamp(timeend).replace(tzinfo=utc)
+		try:
+			return Value.objects.filter(metric = self).exclude(timestamp__lt=dtstart).exclude(timestamp__gt=dtend)
+		except:
+			return None;
+
 
 class Value(models.Model):
 	metric = models.ForeignKey(Metric, related_name='values')
