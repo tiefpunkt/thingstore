@@ -6,8 +6,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 
-from thingstore.models import Thing, Value
+from thingstore.models import Thing, Value, APIKey
 
 
 """ Index page. Contains lists of users and things """
@@ -66,7 +67,7 @@ def thing(request, thing_id):
 """ User detail page """
 def user(request, username):
 	user = get_object_or_404(User, username__iexact=username)
-	return render(request, 'thingstore/user.html', {'user': user})
+	return render(request, 'thingstore/user.html', {'selected_user': user})
 	
 def login_view(request):
 	#state = "Please log in below..."
@@ -96,3 +97,24 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse('thingstore.views.index'))
+
+@login_required
+def settings_apikeys(request):
+	parameters = {}
+	parameters["tab"] = "apikeys"
+	parameters["apikeys"] = request.user.apikeys.all()
+	return render(request, 'thingstore/settings_apikeys.html', parameters)
+
+@login_required
+def settings_apikeys_add(request):
+		apikey = APIKey.create(request.user)
+		apikey.save()
+		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
+
+@login_required
+def settings_apikeys_del(request, apikey_id):
+		apikey = APIKey.objects.get(pk=apikey_id)
+		if apikey.user != request.user:
+			return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
+		apikey.delete()
+		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))

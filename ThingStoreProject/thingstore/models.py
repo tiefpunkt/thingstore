@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from django.utils.timezone import now
-import calendar
+import calendar, string, random
 
 # Create your models here.
 
@@ -63,4 +63,10 @@ class Value(models.Model):
 class APIKey(models.Model):
 	token = models.CharField(max_length=255, unique = True)
 	user = models.ForeignKey(User, related_name='apikeys')
+
+	@classmethod
+	def create(cls, user):
+		apikey = cls(user=user)
+		apikey.token = ''.join(random.sample(string.lowercase+string.uppercase+string.digits,32))
+		return apikey
 	

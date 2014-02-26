@@ -1,0 +1,11 @@
+{% extends "thingstore/settings.html" %}
+
+{% block tab_content %}
+	<h3>My API keys</h3>
+	<a href="add/">Add new API Key</a>
+	<ul class="list-group">
+		{% for apikey in apikeys %}
+			<li class="list-group-item">{{apikey.token}}<a href="del/{{apikey.id}}/" type="button" class="close" aria-hidden="true" >&times;</a></li>
+		{% endfor %}
+	</ul>
+{% endblock %}

@@ -1,30 +1,30 @@
 {% extends "thingstore/base.html" %}
 
 {% block content %}
-<div class="row">
-        <div class="col-sm-6 col-sm-offset-3">
-            <h2>Login</h2>
-            
-            {% if alert %}
+	<div class="row">
+		<div class="col-sm-6 col-sm-offset-3">
+			<h2>Login</h2>
+			
+			{% if alert %}
 				<div class="alert alert-danger alert-dismissable">
 					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 					{{ alert }}
 				</div>
 			{% endif %}
-			
-            <form method="POST" action="" accept-charset="UTF-8" class="form-horizontal" role="form">
+	
+			<form method="POST" action="" accept-charset="UTF-8" class="form-horizontal" role="form">
 				{% csrf_token %} 
 				{% if next %}
 					<input type="hidden" name="next" value="{{ next }}" />
 				{% endif %}
-				
+			
 				<div class="form-group">
 					<label for="username" class="col-sm-3 control-label">Username</label>
 					<div class="col-sm-9">
 						<input type="text" class="form-control" id="username" name="username" placeholder="Username">
 					</div>
 				</div>
-				
+			
 				<div class="form-group">
 					<label for="password" class="col-sm-3 control-label">Password</label>
 					<div class="col-sm-9">
@@ -36,30 +36,7 @@
 						<button type="submit" class="btn btn-primary">Sign in</button>
 					</div>
 				</div>
-            </form>
-        </div>
-	<!--
-	<div class="col-sm-4">	</div>
-	<div class="col-sm-4">
-		<h2>Login</h2>
-		{
-		
-		
-		
-		<form action="/login/" method="post">
-			{% csrf_token %} 
-			{% if next %}
-			<input type="hidden" name="next" value="{{ next }}" />
-			{% endif %}
-			username:
-			<input type="text" name="username" value="{{ username}}" /><br />
-			password:
-			<input type="password" name="password" value="" /><br />
-
-			<input type="submit" value="Log In" />
-		</form>
+			</form>
+		</div>
 	</div>
-	<div class="col-sm-4">	</div>
-	-->
-</div>
 {% endblock %}
