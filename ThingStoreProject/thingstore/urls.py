@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r'^user/(?P<username>\w+)/$', views.user, name='user'),
     
     url(r'^settings/$', lambda x: HttpResponseRedirect('/settings/apikeys')),
+    url(r'^settings/personal/$', views.settings_personal, name='settings_personal'),
     url(r'^settings/apikeys/$', views.settings_apikeys, name='settings_apikeys'),
     url(r'^settings/apikeys/add/$', views.settings_apikeys_add, name='settings_apikeys_add'),
     url(r'^settings/apikeys/del/(?P<apikey_id>\d+)/$', views.settings_apikeys_del, name='settings_apikeys_del'),

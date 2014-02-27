@@ -4,15 +4,8 @@
 	<div class="row">
 		<div class="col-sm-8 col-sm-offset-2">
 			<h2>Settings</h2>
-					<ul class="nav nav-tabs">
-						<li {% if tab == "things" %}class="active" {% endif %}><a href="#things">Things</a></li>
-						<li {% if tab == "apikeys" %}class="active" {% endif %}><a href="#apikeys">API keys</a></li>
-						<li {% if tab == "security" %}class="active" {% endif %}><a href="#">Security</a></li>
-					</ul>
-					
-			<!-- Tab panes -->
-			<div class="tab-content">
-				{% if error %}
+			
+			{% if error %}
 					<div class="alert alert-danger alert-dismissable">
 						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 						{{ error }}
@@ -24,6 +17,15 @@
 						{{ message }}
 					</div>
 				{% endif %}
+				
+					<ul class="nav nav-tabs">
+						<li {% if tab == "personal" %}class="active" {% endif %}><a href="/settings/personal/">Personal data</a></li>
+						<li {% if tab == "apikeys" %}class="active" {% endif %}><a href="/settings/apikeys/">API keys</a></li>
+					</ul>
+					
+			<!-- Tab panes -->
+			<div class="tab-content">
+				
 				{% block tab_content %}{% endblock %}
 			</div>
 		</div>

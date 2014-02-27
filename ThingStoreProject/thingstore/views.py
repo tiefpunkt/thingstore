@@ -99,6 +99,19 @@ def logout_view(request):
     return HttpResponseRedirect(reverse('thingstore.views.index'))
 
 @login_required
+def settings_personal(request):
+	parameters = {}
+	if request.POST:
+		password = request.POST.get('password')
+		password_retype = request.POST.get('password_retype')
+		if password <> password_retype:
+			parameters["error"] = "Please type the same password twice."
+
+	parameters["tab"] = "personal"
+	parameters["apikeys"] = request.user.apikeys.all()
+	return render(request, 'thingstore/settings_personal.html', parameters)	
+
+@login_required
 def settings_apikeys(request):
 	parameters = {}
 	parameters["tab"] = "apikeys"
