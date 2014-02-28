@@ -171,3 +171,5 @@ TEMPLATE_CONTEXT_PROCESSORS = ('django.core.context_processors.request',
 
 # Settings for registraion module
 ACCOUNT_ACTIVATION_DAYS = 7
+
+LOGIN_REDIRECT_URL = "/"
