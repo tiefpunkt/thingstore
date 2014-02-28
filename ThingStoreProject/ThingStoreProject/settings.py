@@ -127,7 +127,8 @@ INSTALLED_APPS = (
     'south',
     'thingstore',
     'tastypie',
-    'django_extensions'
+    'django_extensions',
+    'registration'
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
@@ -167,3 +168,6 @@ AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
 
 TEMPLATE_CONTEXT_PROCESSORS = ('django.core.context_processors.request',
 	'django.contrib.auth.context_processors.auth',)
+
+# Settings for registraion module
+ACCOUNT_ACTIVATION_DAYS = 7
