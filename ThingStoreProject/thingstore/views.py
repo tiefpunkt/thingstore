@@ -106,9 +106,14 @@ def settings_personal(request):
 		password_retype = request.POST.get('password_retype')
 		if password <> password_retype:
 			parameters["error"] = "Please type the same password twice."
-
+		else:
+			#TODO: Password requirements
+			user = request.user
+			user.set_password(password)
+			user.save()
+			parameters["message"] = "Password successfully changed."
+		
 	parameters["tab"] = "personal"
-	parameters["apikeys"] = request.user.apikeys.all()
 	return render(request, 'thingstore/settings_personal.html', parameters)	
 
 @login_required
