@@ -7,6 +7,10 @@ ThingStore is written in Python, using Django. For easier database migrations, S
 	virtualenv env
 	source env/bin/activate
 	pip install -r requirements.txt
+	python manage.py syncdb
+	python manage.py migrate
+
+As last step, start the local development server using ./manage.py runserver and point your browser to http://127.0.0.1:8000.
 
 
 
