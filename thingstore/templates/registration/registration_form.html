@@ -18,7 +18,7 @@
 				<div class="form-group">
 					<label for="{{ form.username.id_for_label }}" class="col-sm-4 control-label">{{ form.username.label }}</label>
 					<div class="col-sm-8">
-						<input type="text" class="form-control" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" placeholder="{{ form.username.label }}" value="{{ form.username.value }}">
+						<input type="text" class="form-control" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" placeholder="{{ form.username.label }}" value="{{ form.username.value|default_if_none:"" }}">
 					</div>
 					
 					{% if form.username.errors %}
@@ -32,7 +32,7 @@
 				<div class="form-group">
 					<label for="{{ form.email.id_for_label }}" class="col-sm-4 control-label">{{ form.email.label }}</label>
 					<div class="col-sm-8">
-						<input type="text" class="form-control" id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}" placeholder="{{ form.email.label }}" value="{{ form.email.value }}">
+						<input type="text" class="form-control" id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}" placeholder="{{ form.email.label }}" value="{{ form.email.value|default_if_none:"" }}">
 					</div>
 					
 					{% if form.email.errors %}
