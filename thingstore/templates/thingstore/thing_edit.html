@@ -4,14 +4,32 @@
 {% block content %}
 <div class="row">
 	<div class="col-sm-8 col-sm-offset-2">
-		<h2>{{ thing.name }}</h2>
-		<p>Thing belongs to: <a href="{% url 'user' thing.owner %}">{{ thing.owner }}</a></p>
-		<p>{{ thing.description|linebreaks }}</p>
-		<p>Location: {{ thing.location }}</p>
+		<h2>Edit Thing - {{ thing.name }}</h2>
+		<form method="POST" class="form-horizontal" role="form">
+			{% csrf_token %}
+			{% for field in thing_form.visible_fields %}
+				<div class="form-group">
+					<label for="{{ field.id_for_label }}" class="col-sm-4 control-label">{{ field.label }}</label>
+					<div class="col-sm-8">
+						{% if field.field.widget|fieldtype == "Textarea" %}
+							<textarea class="form-control" id="{{ field.id_for_label }}" name="{{ field.html_name }}" placeholder="{{ field.label }}">{{ field.value|default_if_none:"" }}</textarea>
+						{% else %}
+							<input type="text" class="form-control" id="{{ field.id_for_label }}" name="{{ field.html_name }}" placeholder="{{ field.label }}" value="{{ field.value|default_if_none:"" }}">
+						{% endif %}
+					</div>
+					
+					{% if field.errors %}
+						<div class="alert alert-danger alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+							{{ field.errors|join:", " }}
+						</div>
+					{% endif %}
+				</div>
+			{% endfor %}
 		<h3>Metrics</h3>
-		<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{metric_formset.management_form}}
+		
+   
+		{{metric_formset.management_form}}
     {% for form in metric_formset %}
 			<div class="panel panel-default">
 				<div class="panel-body">
@@ -20,7 +38,7 @@
 							{{ field }}
 						{% endfor %}
 						{% for field in form.visible_fields %}
-							<div class="form-group">
+							<div class="form-group col-sm-3 col-sm-offset-1">
 								{% if field.field.widget|fieldtype == "CheckboxInput" %}
 									<label class="checkbox-inline">
 										<input type="checkbox" id="{{ field.id_for_label }}" name="{{ field.html_name }}">
