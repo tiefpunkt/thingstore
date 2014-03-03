@@ -7,7 +7,7 @@ from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 
-from thingstore.models import Thing
+from thingstore.models import Thing, Metric
 
 class APIView(View):
 	filetype = "json"
@@ -89,7 +89,7 @@ class ThingAPI(APIView):
 		for metric in metrics:
 			data['metrics'][metric.name] = model_to_dict(metric,fields=['name','unit'])
 			data['metrics'][metric.name]['current_value'] = metric.current_value
-			data['metrics'][metric.name]['current_value'] = metric.current_value
+			data['metrics'][metric.name]['id'] = metric.id
 		return json.dumps(data)
 	
 	# Return a CSV with current values of all metrics of the thing
@@ -142,12 +142,44 @@ class ThingAPI(APIView):
 
 		for metric in data:
 			thing.metrics.get(name=metric[0]).current_value = metric[1]
+
+
+
+class MetricAPI(APIView):	
+	# Return a JSON describing the thing, with current values of the metrics
+	def getJSON(self, request, **kwargs):
+		from django.utils.timezone import now
+
+		# Check if metric_name or metric_id is supplied and try to retrieve metric object
+		try:
+			metric = get_object_or_404(Metric, name=kwargs["metric_name"], thing=kwargs["thing_id"])
+		except KeyError:
+			metric = get_object_or_404(Metric, pk=kwargs["metric_id"], thing=kwargs["thing_id"])
+	
+		rdata = {}
+		#thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
+		#rdata['thing'] = thing.name
+		#rdata['thing_id'] = thing.id
+
+		rdata['name'] = metric.name
+		rdata['current_value'] = metric.current_value
+		rdata['id'] = metric.id
+
+		#TODO make timeframe variable via GET param
+		timeframe = 12*60*60;   #12h default
 		
+		values = metric.getValues(int(now().strftime('%s')) - timeframe)
+		rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+
+		return json.dumps(rdata)
+	
 def metric(request):
 	
 	pass
 
 urls = patterns('',
-	url(r'^thing/(?P<thing_id>\w+).json', ThingAPI.as_view(filetype="json")),
-	url(r'^thing/(?P<thing_id>\w+).csv', ThingAPI.as_view(filetype="csv")),
+	url(r'^thing/(?P<thing_id>\d+).json', ThingAPI.as_view(filetype="json")),
+	url(r'^thing/(?P<thing_id>\d+).csv', ThingAPI.as_view(filetype="csv")),
+	url(r'^thing/(?P<thing_id>\d+)/(?P<metric_id>\d+).json', MetricAPI.as_view(filetype="json")),
+	url(r'^thing/(?P<thing_id>\d+)/(?P<metric_name>.+).json', MetricAPI.as_view(filetype="json")),
 )
