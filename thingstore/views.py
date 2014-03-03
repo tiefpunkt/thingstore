@@ -135,13 +135,20 @@ def settings_apikeys_add(request):
 def settings_apikeys_del(request, apikey_id):
 		apikey = APIKey.objects.get(pk=apikey_id)
 		if apikey.user != request.user:
+			# TODO: Error message
 			return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
 		apikey.delete()
+		#TODO: Success message
 		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
 
 """ Thing editor """
+# TODO: Check if user is owner of thing
+# TODO: Allow for creation of new things
+# TODO: Links to this view
+# TODO: Error handling
 @login_required
 def thing_editor(request, thing_id):
+	# TODO: Move to forms.py
 	MetricFormSet = inlineformset_factory(Thing, Metric)
 	
 	thing = get_object_or_404(Thing, pk=thing_id)
@@ -158,8 +165,6 @@ def thing_editor(request, thing_id):
 	else:
 		thing_form = ThingForm(instance=thing)
 		formset = MetricFormSet(instance=thing)
-		
-	metrics = thing.metrics.all()
 
 	return render(request, 'thingstore/thing_edit.html',
 		{
