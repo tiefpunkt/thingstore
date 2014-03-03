@@ -143,9 +143,16 @@ def settings_apikeys_del(request, apikey_id):
 def thing_editor(request, thing_id):
 	MetricFormSet = inlineformset_factory(Thing, Metric)
 	
-	# Create Querysets
 	thing = get_object_or_404(Thing, pk=thing_id)
-	formset = MetricFormSet(instance=thing)
+	
+	if request.method == "POST":
+		formset = MetricFormSet(request.POST, instance=thing)
+		if formset.is_valid():
+			formset.save()
+			return HttpResponseRedirect(thing.get_absolute_url())
+	else:
+		formset = MetricFormSet(instance=thing)
+		
 	metrics = thing.metrics.all()
 
 	return render(request, 'thingstore/thing_edit.html',
