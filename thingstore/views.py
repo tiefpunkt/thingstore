@@ -7,8 +7,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.forms.models import inlineformset_factory
 
-from thingstore.models import Thing, Value, APIKey
+from thingstore.models import Thing, Value, APIKey, Metric
 
 
 """ Index page. Contains lists of users and things """
@@ -136,3 +137,20 @@ def settings_apikeys_del(request, apikey_id):
 			return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
 		apikey.delete()
 		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
+
+""" Thing editor """
+@login_required
+def thing_editor(request, thing_id):
+	MetricFormSet = inlineformset_factory(Thing, Metric)
+	
+	# Create Querysets
+	thing = get_object_or_404(Thing, pk=thing_id)
+	formset = MetricFormSet(instance=thing)
+	metrics = thing.metrics.all()
+
+	return render(request, 'thingstore/thing_edit.html',
+		{
+			'thing': thing,
+			'metric_formset': formset
+		}
+	)	

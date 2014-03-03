@@ -1,0 +1,41 @@
+{% extends "thingstore/base.html" %}
+{% load form_extras %}
+
+{% block content %}
+<div class="row">
+	<div class="col-sm-8 col-sm-offset-2">
+		<h2>{{ thing.name }}</h2>
+		<p>Thing belongs to: <a href="{% url 'user' thing.owner %}">{{ thing.owner }}</a></p>
+		<p>{{ thing.description|linebreaks }}</p>
+		<p>Location: {{ thing.location }}</p>
+		<h3>Metrics</h3>
+		<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for form in metric_formset %}
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<div class="form-inline" role="form">
+						{% for field in form.hidden_fields %}
+							{{ field }}
+						{% endfor %}
+						{% for field in form.visible_fields %}
+							<div class="form-group">
+								{% if field.field.widget|fieldtype == "CheckboxInput" %}
+									<label class="checkbox-inline">
+										<input type="checkbox" id="{{ field.id_for_label }}" name="{{ field.html_name }}">
+										{{ field.label }}
+									</label>
+								{% else %}
+									<input type="text" class="form-control" id="{{ field.id_for_label }}" name="{{ field.html_name }}" placeholder="{{ field.label }}" value="{{ field.value|default_if_none:"" }}">
+								{% endif %}
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+		</form>
+	</div>
+</div>
+{% endblock %}
+

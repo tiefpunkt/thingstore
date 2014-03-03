@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     # url(r'^logout/$', views.logout_view, name='logout'),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^thing/(?P<thing_id>\d+)/$', views.thing, name='thing'),
+    url(r'^thing/(?P<thing_id>\d+)/edit/$', views.thing_editor, name='thing_editor'),
     url(r'^user/(?P<username>\w+)/$', views.user, name='user'),
     
     url(r'^settings/$', lambda x: HttpResponseRedirect('/settings/apikeys')),
