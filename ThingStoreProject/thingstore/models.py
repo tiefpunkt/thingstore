@@ -49,11 +49,9 @@ class Metric(models.Model):
 		except Value.DoesNotExist:
 			return None
 
-	def getValues(self, timestart, timeend=float(now().strftime('%s'))):
-		dtstart = datetime.datetime.fromtimestamp(timestart).replace(tzinfo=utc)
-		dtend = datetime.datetime.fromtimestamp(timeend).replace(tzinfo=utc)
+	def getValues(self, timeframe_hours):
 		try:
-			return Value.objects.filter(metric = self).exclude(timestamp__lt=dtstart).exclude(timestamp__gt=dtend)
+			return Value.objects.filter(metric = self, timestamp__gte = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp')
 		except:
 			return None;
 
