@@ -157,19 +157,23 @@ class MetricAPI(APIView):
 			metric = get_object_or_404(Metric, pk=kwargs["metric_id"], thing=kwargs["thing_id"])
 	
 		rdata = {}
-		#thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
-		#rdata['thing'] = thing.name
-		#rdata['thing_id'] = thing.id
 
 		rdata['name'] = metric.name
-		rdata['current_value'] = metric.current_value
+		rdata['current_value'] = float(metric.current_value)
 		rdata['id'] = metric.id
 
-		#TODO make timeframe variable via GET param
-		timeframe = 12*60*60;   #12h default
+		try:
+			timeframe = int(kwargs["apitimeframe"])
+		except KeyError:
+			timeframe = 12; #12h default
 		
-		values = metric.getValues(int(now().strftime('%s')) - timeframe)
-		rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+		values = metric.getValues(timeframe)
+
+		try:
+			rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+		except:
+			rdata['data'] = [ ]
+			rdata['message'] = 'an error occured'
 
 		return json.dumps(rdata)
 	
@@ -181,5 +185,6 @@ urls = patterns('',
 	url(r'^thing/(?P<thing_id>\d+).json', ThingAPI.as_view(filetype="json")),
 	url(r'^thing/(?P<thing_id>\d+).csv', ThingAPI.as_view(filetype="csv")),
 	url(r'^thing/(?P<thing_id>\d+)/(?P<metric_id>\d+).json', MetricAPI.as_view(filetype="json")),
+	url(r'^thing/(?P<thing_id>\d+)/(?P<metric_id>\d+)/(?P<apitimeframe>\d+).json$', MetricAPI.as_view(filetype="json")),
 	url(r'^thing/(?P<thing_id>\d+)/(?P<metric_name>.+).json', MetricAPI.as_view(filetype="json")),
 )
