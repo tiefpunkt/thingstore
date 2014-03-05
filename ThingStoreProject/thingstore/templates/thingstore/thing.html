@@ -21,7 +21,7 @@
 						Show dots: <input type="checkbox" id="showdots-{{ metric.id }}" class="metric-showdots">
 					</label><br />
 					<label>
-						Select timeframe : 
+						Select timeframe :
 						<div id="slider-{{ metric.id }}" class="metricslider"></div>
 					</label>
 				</form>
@@ -65,15 +65,13 @@
 				xDateFormat: "%d-%m-%Y %H:%M:%S",
 			}
 		};
-		
+
 		$.plot("#graph_{{ metric.id }}", [ data_{{ metric.id }} ], options_{{ metric.id }});
 	{% endfor %}
 
-		
-		
 		// Get Json Data from API
 		function rePlotGraph(graphID) {
-			var graph_feed='/api/thing/{{ thing.id }}/' + graphID + '/' + window['timeframe_hours_'+graphID] + '.json';
+			var graph_feed='/api/thing/{{ thing.id }}/' + graphID + '.json?apitimeframe=' + window['timeframe_hours_'+graphID];
 			$.ajax({
 			    url: graph_feed,
 			    type: "GET",
@@ -81,7 +79,7 @@
 			    success: onDataReceivedGraph
 			});
 		}
-		
+
 		// Set New Timeframe for Graph
 		// Set Graphdata to Data received from API
 		// Replot Graph and refresh Current Value
@@ -92,7 +90,7 @@
 			$.plot("#graph_"+series.id, [ window['data_'+series.id] ], window['options_'+series.id]);
 			$('#current-value-metric'+series.id).text(series.current_value);
 		}
-	
+
 		// Loopfunction for AJAX Magic
 		function refreshLoopGraph(graphID) {
 			rePlotGraph(graphID);
@@ -100,37 +98,37 @@
 				refreshLoopGraph(graphID);
 			}, 1000 * 60); // 60 seconds
 		}
-	
+
 	// Show/Hide Dots on Checkbox Click event
 	$('input.metric-showdots').click(function(){
 		var id = $(this).attr('id').substr('showdots-'.length);
 		window['options_'+id].points.show = $(this).is(':checked');
 		$.plot("#graph_"+id, [ window['data_'+id] ], window['options_'+id]);
 		});
-	
+
 	// Slider Initiate
-	// EventHandler to update popover on slide 
+	// EventHandler to update popover on slide
 	var MetricSliderValMap = [1, 2, 6, 12, 24, 48, 168, 336, 720],
-            MetricSliderValStringMap = ['1 hour', '2 hours', '6 hours', '12 hours', '1 day', '2 days', '1 week', '2 weeks', '1 month'];
+	MetricSliderValStringMap = ['1 hour', '2 hours', '6 hours', '12 hours', '1 day', '2 days', '1 week', '2 weeks', '1 month'];
 	$(".metricslider").slider({
-	    animate: false,
-            min: 0,
-            max: MetricSliderValMap.length - 1,
-            value: 3,
-            stop: function (event, ui) {
-		var id = $(this).attr('id').substr('slider-'.length);
-		window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
-                window['options_'+id].xaxis.min = (new Date()).getTime() - window['timeframe_hours_'+id]*60*60*1000;
-		window['options_'+id].xaxis.max = (new Date()).getTime();
-		rePlotGraph(id); // fetch data for new timeinterval and plot
-            },
-	    slide: function (event, ui) {
-		var id = $(this).attr('id').substr('slider-'.length);
-		window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
-		$('#settings-graph-'+id+' .popover-content').text(MetricSliderValStringMap[ui.value]);
-	    }
-        });
-	
+		animate: false,
+			min: 0,
+			max: MetricSliderValMap.length - 1,
+			value: 3,
+			stop: function (event, ui) {
+				var id = $(this).attr('id').substr('slider-'.length);
+				window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
+				window['options_'+id].xaxis.min = (new Date()).getTime() - window['timeframe_hours_'+id]*60*60*1000;
+				window['options_'+id].xaxis.max = (new Date()).getTime();
+				rePlotGraph(id); // fetch data for new timeinterval and plot
+			},
+			slide: function (event, ui) {
+				var id = $(this).attr('id').substr('slider-'.length);
+				window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
+				$('#settings-graph-'+id+' .popover-content').text(MetricSliderValStringMap[ui.value]);
+			}
+	});
+
 	// Popover for Timeframeslider
 	$('.metricslider').popover({
 		trigger:'hover',
@@ -140,7 +138,6 @@
 			return MetricSliderValStringMap[$(this).slider('value')];
 		}
 	});
-	
 
 	$(document).ready(function () {
 		// Slider Workaround
@@ -149,11 +146,7 @@
 		// Initiate Ajax Magic
 		{% for metric in metrics %}
 		refreshLoopGraph({{ metric.id }});{% endfor %}
-	
-	
-	
-	
-	
+
 	});
 </script>
 {% endblock %}
