@@ -5,8 +5,27 @@
 	<div class="col-sm-8">
 		{% for metric in metrics %}
 			<h3>{{ metric.name }}</h3>
-			<div>Current: {{ metric.current_value }}{{ metric.unit }}</div>
+			<div>Current: <span id="current-value-metric{{ metric.id }}">{{ metric.current_value }}</span>{{ metric.unit }}</div>
 			<div id="graph_{{ metric.id }}" style="height:180px;"></div>
+			<button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target="#settings-graph-{{ metric.id }}">
+				<span class="glyphicon glyphicon-cog"></span>
+			</button>
+			<div id="settings-graph-{{ metric.id }}" class="metric-settings collapse in">
+				<h4>Settings for Metric {{ metric.name }}</h4>
+				<!--
+				show dots
+				timeframe slider
+				-->
+				<form class="form-inline" role="form">
+					<label>
+						Show dots: <input type="checkbox" id="showdots-{{ metric.id }}" class="metric-showdots">
+					</label><br />
+					<label>
+						Select timeframe :
+						<div id="slider-{{ metric.id }}" class="metricslider"></div>
+					</label>
+				</form>
+			</div>
 		{% endfor %}
 	</div>
 	<div class="col-sm-4">
@@ -23,17 +42,22 @@
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.time.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.tooltip.min.js' %}"></script>
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery-ui-1.10.3.custom.min.js' %}"></script>
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.ui.touch-punch.min.js' %}"></script>
+<link href="{% static 'thingstore/css/smoothness/jquery-ui-1.10.3.custom.min.css' %}" rel="stylesheet">
+<link href="{% static 'thingstore/css/thingstore.css' %}" rel="stylesheet">
 <script type="text/javascript">
-			$(function() {
+
 	{% for metric in metrics %}
 		var data_{{ metric.id }} = [{% for value in metric.value_dict %} [{{value.js_time}},{{value.value}}],{% endfor %}
-		];
-		$.plot("#graph_{{ metric.id }}", [data_{{ metric.id }}], {
+		],
+		timeframe_hours_{{ metric.id }}={{ timeframe_hours }},
+		options_{{ metric.id }} = {
 			xaxis: { mode: "time",
-				min: (new Date()).getTime() - {{ timeframe_hours }}*60*60*1000,
+				min: (new Date()).getTime() - timeframe_hours_{{ metric.id }}*60*60*1000,
 				max: (new Date()).getTime(),
 			},
-			points: { show: true },
+			points: { show: false },
 			lines: { show: true },
 			grid: { hoverable: true },
 			tooltip: true,
@@ -41,11 +65,89 @@
 				content: "<b>%x</b><br>%y{{ metric.unit }}",
 				xDateFormat: "%d-%m-%Y %H:%M:%S",
 			}
-		});
+		};
+
+		$.plot("#graph_{{ metric.id }}", [ data_{{ metric.id }} ], options_{{ metric.id }});
 	{% endfor %}
 
+		// Get Json Data from API
+		function rePlotGraph(graphID) {
+			var graph_feed='/api/thing/{{ thing.id }}/' + graphID + '.json?apitimeframe=' + window['timeframe_hours_'+graphID];
+			$.ajax({
+			    url: graph_feed,
+			    type: "GET",
+			    dataType: "json",
+			    success: onDataReceivedGraph
+			});
+		}
 
-	
+		// Set New Timeframe for Graph
+		// Set Graphdata to Data received from API
+		// Replot Graph and refresh Current Value
+		function onDataReceivedGraph(series) {
+			window['options_'+series.id].xaxis.min = (new Date()).getTime() - window['timeframe_hours_'+series.id]*60*60*1000;
+			window['options_'+series.id].xaxis.max = (new Date()).getTime();
+			window['data_'+series.id] = series.data;
+			$.plot("#graph_"+series.id, [ window['data_'+series.id] ], window['options_'+series.id]);
+			$('#current-value-metric'+series.id).text(series.current_value);
+		}
+
+		// Loopfunction for AJAX Magic
+		function refreshLoopGraph(graphID) {
+			rePlotGraph(graphID);
+			setTimeout(function(){
+				refreshLoopGraph(graphID);
+			}, 1000 * 60); // 60 seconds
+		}
+
+	// Show/Hide Dots on Checkbox Click event
+	$('input.metric-showdots').click(function(){
+		var id = $(this).attr('id').substr('showdots-'.length);
+		window['options_'+id].points.show = $(this).is(':checked');
+		$.plot("#graph_"+id, [ window['data_'+id] ], window['options_'+id]);
+		});
+
+	// Slider Initiate
+	// EventHandler to update popover on slide
+	var MetricSliderValMap = [1, 2, 6, 12, 24, 48, 168, 336, 720],
+	MetricSliderValStringMap = ['1 hour', '2 hours', '6 hours', '12 hours', '1 day', '2 days', '1 week', '2 weeks', '1 month'];
+	$(".metricslider").slider({
+		animate: false,
+			min: 0,
+			max: MetricSliderValMap.length - 1,
+			value: 3,
+			stop: function (event, ui) {
+				var id = $(this).attr('id').substr('slider-'.length);
+				window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
+				window['options_'+id].xaxis.min = (new Date()).getTime() - window['timeframe_hours_'+id]*60*60*1000;
+				window['options_'+id].xaxis.max = (new Date()).getTime();
+				rePlotGraph(id); // fetch data for new timeinterval and plot
+			},
+			slide: function (event, ui) {
+				var id = $(this).attr('id').substr('slider-'.length);
+				window['timeframe_hours_' + id] = MetricSliderValMap[ui.value];
+				$('#settings-graph-'+id+' .popover-content').text(MetricSliderValStringMap[ui.value]);
+			}
+	});
+
+	// Popover for Timeframeslider
+	$('.metricslider').popover({
+		trigger:'hover',
+		animation: true,
+		placement:'right',
+		content: function () {
+			return MetricSliderValStringMap[$(this).slider('value')];
+		}
+	});
+
+	$(document).ready(function () {
+		// Slider Workaround
+		// else slider would have width of 1px
+		$('.metric-settings').removeClass('in');
+		// Initiate Ajax Magic
+		{% for metric in metrics %}
+		refreshLoopGraph({{ metric.id }});{% endfor %}
+
 	});
 </script>
 {% endblock %}

@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
-import json, csv
+import json
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
@@ -16,11 +16,11 @@ class APIView(View):
 	@csrf_exempt
 	def dispatch(self, *args, **kwargs):
 		return super(APIView, self).dispatch(*args, **kwargs)
-	
+
 	# abstract call when a json is requested
 	def getJSON(self, request, **kwargs):
 		pass
-	
+
 	# abstract call when a csv is requested
 	def getCSV(self, request, **kwargs):
 		pass
@@ -37,19 +37,19 @@ class APIView(View):
 	# abstract call when a JSON is sent as a PUT request
 	def putJSON(self, request, **kwargs):
 		pass
-	
+
 	# abstract call when a CSV is sent as a PUT request
 	def putCSV(self, request, **kwargs):
 		pass
 
 	# dispatches PUT requests
 	def put(self, request, **kwargs):
-		
+
 		# API Key authentication
 		# Only if not already authenticated by some other means
 		used_apikey = False
 		if not request.user.is_authenticated():
-			try: 
+			try:
 				apikey = request.GET['apikey']
 				user = authenticate(apikey=apikey)
 			except:
@@ -68,22 +68,22 @@ class APIView(View):
 			response = self.putJson(request, **kwargs)
 		elif self.filetype == "csv":
 			response = self.putCSV(request, **kwargs)
-		
+
 		# logout if logged in by apikey
 		if (used_apikey):
 			logout(request)
-		
+
 		return response
 
 # API resource of Things
 class ThingAPI(APIView):
-	
+
 	# Return a JSON describing the thing, with current values of the metrics
 	def getJSON(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
-		
+
 		data = model_to_dict(thing)
-		
+
 		data['metrics'] = {}
 		metrics = thing.metrics.all()
 		for metric in metrics:
@@ -91,7 +91,7 @@ class ThingAPI(APIView):
 			data['metrics'][metric.name]['current_value'] = metric.current_value
 			data['metrics'][metric.name]['id'] = metric.id
 		return json.dumps(data)
-	
+
 	# Return a CSV with current values of all metrics of the thing
 	def getCSV(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
@@ -100,7 +100,7 @@ class ThingAPI(APIView):
 		for metric in metrics:
 			data = "%s%s,%s\n" % (data, metric.name, metric.current_value)
 		return data
-	
+
 	# Update a thing's metrics. Eventually, at least.
 	def putCSV(self, request, **kwargs):
 		thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
@@ -116,7 +116,7 @@ class ThingAPI(APIView):
 			if len(line_data) != 2:
 				return HttpResponseBadRequest("ERROR\n", content_type="text/plain")
 			data.append(line_data)
-		
+
 		try:
 			self.writeToMetrics(thing, data)
 		except Exception as err:
@@ -133,7 +133,7 @@ class ThingAPI(APIView):
 		for metric in data:
 			if thing.metrics.filter(name = metric[0]).count() <> 1:
 				raise Exception("Metric \"" + metric[0] + "\" does not exist.")
-			
+
 			try:
 				float(metric[1])
 			except ValueError:
@@ -145,36 +145,38 @@ class ThingAPI(APIView):
 
 
 
-class MetricAPI(APIView):	
+class MetricAPI(APIView):
 	# Return a JSON describing the thing, with current values of the metrics
 	def getJSON(self, request, **kwargs):
-		from django.utils.timezone import now
 
 		# Check if metric_name or metric_id is supplied and try to retrieve metric object
 		try:
 			metric = get_object_or_404(Metric, name=kwargs["metric_name"], thing=kwargs["thing_id"])
 		except KeyError:
 			metric = get_object_or_404(Metric, pk=kwargs["metric_id"], thing=kwargs["thing_id"])
-	
+
 		rdata = {}
-		#thing = get_object_or_404(Thing, pk=kwargs["thing_id"])
-		#rdata['thing'] = thing.name
-		#rdata['thing_id'] = thing.id
 
 		rdata['name'] = metric.name
-		rdata['current_value'] = metric.current_value
+		rdata['current_value'] = float(metric.current_value)
 		rdata['id'] = metric.id
 
-		#TODO make timeframe variable via GET param
-		timeframe = 12*60*60;   #12h default
-		
-		values = metric.getValues(int(now().strftime('%s')) - timeframe)
-		rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+		try:
+			timeframe = int(request.GET.get('apitimeframe',''))
+		except (KeyError, ValueError):
+			timeframe = 12; #12h default
+
+		values = metric.getValues(timeframe)
+
+		try:
+			rdata['data'] =	[ [value.js_time,value.value] for value in values ]
+		except:
+			rdata['data'] = [ ]
+			rdata['message'] = 'an error occured'
 
 		return json.dumps(rdata)
-	
+
 def metric(request):
-	
 	pass
 
 urls = patterns('',
