@@ -147,24 +147,34 @@ def settings_apikeys_del(request, apikey_id):
 # TODO: Links to this view
 # TODO: Error handling
 @login_required
-def thing_editor(request, thing_id):
+def thing_editor(request, thing_id = None):
 	# TODO: Move to forms.py
 	MetricFormSet = inlineformset_factory(Thing, Metric)
 	
-	thing = get_object_or_404(Thing, pk=thing_id)
+	thing = None
 	
 	if request.method == "POST":
-		thing_form = ThingForm(request.POST, instance=thing)
+		if thing_id:
+			thing = get_object_or_404(Thing, pk=thing_id)
+			thing_form = ThingForm(request.POST, instance=thing)
+		else:
+			thing_form = ThingForm(request.POST)
 		if thing_form.is_valid():
 			thing_from_form = thing_form.save(commit = False)
-			formset = MetricFormSet(request.POST, instance=thing)
+			thing_from_form.owner = request.user
+			formset = MetricFormSet(request.POST, instance=thing_from_form)
 			if formset.is_valid():
 				thing_from_form.save()
 				formset.save()
-				return HttpResponseRedirect(thing.get_absolute_url())
+				return HttpResponseRedirect(thing_from_form.get_absolute_url())
 	else:
-		thing_form = ThingForm(instance=thing)
-		formset = MetricFormSet(instance=thing)
+		if thing_id:
+			thing = get_object_or_404(Thing, pk=thing_id)
+			thing_form = ThingForm(instance=thing)
+			formset = MetricFormSet(instance=thing)
+		else:
+			thing_form = ThingForm()
+			formset = MetricFormSet()
 
 	return render(request, 'thingstore/thing_edit.html',
 		{

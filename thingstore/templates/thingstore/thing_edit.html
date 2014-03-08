@@ -4,7 +4,13 @@
 {% block content %}
 <div class="row">
 	<div class="col-sm-8 col-sm-offset-2">
-		<h2>Edit Thing - {{ thing.name }}</h2>
+		<h2>
+			{% if thing %}
+			  Edit Thing - {{ thing.name }}
+			{% else %}
+				New Thing
+			{% endif %}
+		</h2>
 		<form method="POST" class="form-horizontal" role="form">
 			{% csrf_token %}
 			{% for field in thing_form.visible_fields %}
