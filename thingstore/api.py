@@ -158,7 +158,10 @@ class MetricAPI(APIView):
 		rdata = {}
 
 		rdata['name'] = metric.name
-		rdata['current_value'] = float(metric.current_value)
+		if metric.current_value is not None:
+			rdata['current_value'] = float(metric.current_value)
+		else:
+			rdata['current_value'] = 0.0
 		rdata['id'] = metric.id
 
 		try:
