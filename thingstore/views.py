@@ -142,9 +142,6 @@ def settings_apikeys_del(request, apikey_id):
 		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
 
 """ Thing editor """
-# TODO: Check if user is owner of thing
-# TODO: Allow for creation of new things
-# TODO: Links to this view
 # TODO: Error handling
 @login_required
 def thing_editor(request, thing_id = None):
@@ -156,6 +153,9 @@ def thing_editor(request, thing_id = None):
 	if request.method == "POST":
 		if thing_id:
 			thing = get_object_or_404(Thing, pk=thing_id)
+			if thing.owner <> request.user:
+				# TODO: Error Message
+				return HttpResponseRedirect(thing.get_absolute_url())
 			thing_form = ThingForm(request.POST, instance=thing)
 		else:
 			thing_form = ThingForm(request.POST)
@@ -170,6 +170,9 @@ def thing_editor(request, thing_id = None):
 	else:
 		if thing_id:
 			thing = get_object_or_404(Thing, pk=thing_id)
+			if thing.owner <> request.user:
+				# TODO: Error Message
+				return HttpResponseRedirect(thing.get_absolute_url())
 			thing_form = ThingForm(instance=thing)
 			formset = MetricFormSet(instance=thing)
 		else:

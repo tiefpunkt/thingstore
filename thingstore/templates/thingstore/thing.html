@@ -14,7 +14,9 @@
 		<p>Thing belongs to: <a href="{% url 'user' thing.owner %}">{{ thing.owner }}</a></p>
 		<p>{{ thing.description|linebreaks }}</p>
 		<p>Location: {{ thing.location }}</p>
-		<p><a href="edit/" class="btn btn-default">Edit</a></p>
+		{% if thing.owner == user %}
+			<p><a href="edit/" class="btn btn-default">Edit</a></p>
+		{% endif %}
 
 	</div>
 </div>
