@@ -42,6 +42,7 @@
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.time.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.flot.tooltip.min.js' %}"></script>
+<script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery-flot-dashes.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery-ui-1.10.3.custom.min.js' %}"></script>
 <script language="javascript" type="text/javascript" src="{% static 'thingstore/js/jquery.ui.touch-punch.min.js' %}"></script>
 <link href="{% static 'thingstore/css/smoothness/jquery-ui-1.10.3.custom.min.css' %}" rel="stylesheet">
@@ -49,8 +50,19 @@
 <script type="text/javascript">
 
 	{% for metric in metrics %}
-		var data_{{ metric.id }} = [{% for value in metric.value_dict %} [{{value.js_time}},{{value.value}}],{% endfor %}
-		],
+		var data_{{ metric.id }} = {
+			data : [
+				{% for value in metric.value_dict %} [{{value.js_time}},{{value.value}}],{% endfor %}
+			],
+			color : 0
+		},
+		c_data_{{ metric.id }} = {
+			data : [],
+			points : { show : false },
+			dashes : { show : true },
+			color : 0,
+			lines: { show: false },
+		},
 		timeframe_hours_{{ metric.id }}={{ timeframe_hours }},
 		options_{{ metric.id }} = {
 			xaxis: { mode: "time",
@@ -66,7 +78,6 @@
 				xDateFormat: "%d-%m-%Y %H:%M:%S",
 			}
 		};
-
 		$.plot("#graph_{{ metric.id }}", [ data_{{ metric.id }} ], options_{{ metric.id }});
 	{% endfor %}
 
@@ -74,10 +85,10 @@
 		function rePlotGraph(graphID) {
 			var graph_feed='/api/thing/{{ thing.id }}/' + graphID + '.json?apitimeframe=' + window['timeframe_hours_'+graphID];
 			$.ajax({
-			    url: graph_feed,
-			    type: "GET",
-			    dataType: "json",
-			    success: onDataReceivedGraph
+				url: graph_feed,
+				type: "GET",
+				dataType: "json",
+				success: onDataReceivedGraph
 			});
 		}
 
@@ -87,8 +98,12 @@
 		function onDataReceivedGraph(series) {
 			window['options_'+series.id].xaxis.min = (new Date()).getTime() - window['timeframe_hours_'+series.id]*60*60*1000;
 			window['options_'+series.id].xaxis.max = (new Date()).getTime();
-			window['data_'+series.id] = series.data;
-			$.plot("#graph_"+series.id, [ window['data_'+series.id] ], window['options_'+series.id]);
+			window['data_'+series.id].data = series.data;
+			window['c_data_'+series.id].data = [
+					window['data_'+series.id].data[window['data_'+series.id].data.length - 1] ,
+					[(new Date()).getTime() + 10*60*1000, $('#current-value-metric'+series.id).text()]
+				]
+			$.plot("#graph_"+series.id, [ window['data_'+series.id], window['c_data_'+series.id] ], window['options_'+series.id]);
 			$('#current-value-metric'+series.id).text(series.current_value);
 		}
 
