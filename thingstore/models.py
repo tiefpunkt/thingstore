@@ -47,9 +47,21 @@ class Metric(models.Model):
 		except Value.DoesNotExist:
 			return None
 
+	""" Returns a list of Value objects for the last $timeframe_hours
+		plus the one Value before the timeframe if existing """
 	def getValues(self, timeframe_hours):
 		try:
-			return Value.objects.filter(metric = self, timestamp__gte = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp')
+			r_values = Value.objects.filter(metric = self, timestamp__gte = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp')
+			r_list = [ values for values in r_values]
+			# The invisible Value outside of the Timeframe
+			inv_len = Value.objects.filter(metric = self, id__lt = r_values[0].id).order_by('timestamp').count()
+			if inv_len >= 1:
+				inv_value = Value.objects.filter(metric = self, id__lt = r_values[0].id).order_by('timestamp')
+				ext_list = [inv_value[inv_len-1]]
+				for value in r_list:
+					ext_list.append(value)
+				return ext_list
+			return r_list
 		except:
 			return None;
 
@@ -75,4 +87,3 @@ class APIKey(models.Model):
 		apikey = cls(user=user)
 		apikey.token = ''.join(random.sample(string.lowercase+string.uppercase+string.digits,32))
 		return apikey
-	
