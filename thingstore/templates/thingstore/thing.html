@@ -119,7 +119,7 @@
 	$('input.metric-showdots').click(function(){
 		var id = $(this).attr('id').substr('showdots-'.length);
 		window['options_'+id].points.show = $(this).is(':checked');
-		$.plot("#graph_"+id, [ window['data_'+id] ], window['options_'+id]);
+		$.plot("#graph_"+id, [ window['data_'+id], window['c_data_'+id] ], window['options_'+id]);
 		});
 
 	// Slider Initiate
