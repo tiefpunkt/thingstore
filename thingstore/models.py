@@ -61,12 +61,10 @@ class Metric(models.Model):
 			
 			# The invisible Value outside of the Timeframe
 			inv_value = Value.objects.filter(metric = self, timestamp__lt = now()-datetime.timedelta(hours=timeframe_hours)).order_by('-timestamp')[:1]
-			inv_len = inv_value.count()
-			if inv_len >= 1:
-				ext_list = [inv_value[0]]
-				for value in r_list:
-					ext_list.append(value)
-				return ext_list
+			
+			if inv_value.count():
+				vr_list = list(inv_value) + list(r_values)
+				return vr_list
 			return r_list
 		except:
 			return None;
