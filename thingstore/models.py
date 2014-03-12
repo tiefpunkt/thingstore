@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.utils.timezone import now, utc
 import calendar, datetime, string, random
 
@@ -13,6 +14,9 @@ class Thing(models.Model):
 	
 	def __unicode__(self):
 		return self.name;
+		
+	def get_absolute_url(self):
+		return reverse('thingstore.views.thing', args=[str(self.id)])
 
 class Metric(models.Model):
 	thing = models.ForeignKey(Thing, related_name='metrics')

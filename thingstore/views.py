@@ -7,8 +7,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.forms.models import inlineformset_factory
 
-from thingstore.models import Thing, Value, APIKey
+from thingstore.models import Thing, Value, APIKey, Metric
+from thingstore.forms import ThingForm
 
 
 """ Index page. Contains lists of users and things """
@@ -133,6 +135,54 @@ def settings_apikeys_add(request):
 def settings_apikeys_del(request, apikey_id):
 		apikey = APIKey.objects.get(pk=apikey_id)
 		if apikey.user != request.user:
+			# TODO: Error message
 			return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
 		apikey.delete()
+		#TODO: Success message
 		return HttpResponseRedirect(reverse('thingstore.views.settings_apikeys'))
+
+""" Thing editor """
+# TODO: Error handling
+@login_required
+def thing_editor(request, thing_id = None):
+	# TODO: Move to forms.py
+	MetricFormSet = inlineformset_factory(Thing, Metric)
+	
+	thing = None
+	
+	if request.method == "POST":
+		if thing_id:
+			thing = get_object_or_404(Thing, pk=thing_id)
+			if thing.owner <> request.user:
+				# TODO: Error Message
+				return HttpResponseRedirect(thing.get_absolute_url())
+			thing_form = ThingForm(request.POST, instance=thing)
+		else:
+			thing_form = ThingForm(request.POST)
+		if thing_form.is_valid():
+			thing_from_form = thing_form.save(commit = False)
+			thing_from_form.owner = request.user
+			formset = MetricFormSet(request.POST, instance=thing_from_form)
+			if formset.is_valid():
+				thing_from_form.save()
+				formset.save()
+				return HttpResponseRedirect(thing_from_form.get_absolute_url())
+	else:
+		if thing_id:
+			thing = get_object_or_404(Thing, pk=thing_id)
+			if thing.owner <> request.user:
+				# TODO: Error Message
+				return HttpResponseRedirect(thing.get_absolute_url())
+			thing_form = ThingForm(instance=thing)
+			formset = MetricFormSet(instance=thing)
+		else:
+			thing_form = ThingForm()
+			formset = MetricFormSet()
+
+	return render(request, 'thingstore/thing_edit.html',
+		{
+			'thing': thing,
+			'thing_form': thing_form,
+			'metric_formset': formset
+		}
+	)	
