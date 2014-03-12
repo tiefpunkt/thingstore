@@ -55,13 +55,15 @@ class Metric(models.Model):
 		plus the one Value before the timeframe if existing """
 	def getValues(self, timeframe_hours):
 		try:
+			# Get all values within the timeframe
 			r_values = Value.objects.filter(metric = self, timestamp__gte = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp')
 			r_list = [ values for values in r_values]
+			
 			# The invisible Value outside of the Timeframe
-			inv_len = Value.objects.filter(metric = self, timestamp__lt = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp').count()
+			inv_value = Value.objects.filter(metric = self, timestamp__lt = now()-datetime.timedelta(hours=timeframe_hours)).order_by('-timestamp')[:1]
+			inv_len = inv_value.count()
 			if inv_len >= 1:
-				inv_value = Value.objects.filter(metric = self, timestamp__lt = now()-datetime.timedelta(hours=timeframe_hours)).order_by('timestamp')
-				ext_list = [inv_value[inv_len-1]]
+				ext_list = [inv_value[0]]
 				for value in r_list:
 					ext_list.append(value)
 				return ext_list
