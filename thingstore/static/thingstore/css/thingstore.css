@@ -1,5 +1,9 @@
 div.metricslider {
-    margin-top: -1em;
-    margin-left: 150px;
-    width: 275px;
+	margin-top: -1em;
+	margin-left: 150px;
+	width: 275px;
+}
+
+footer p {
+	font-size: 0.8em;
 }
