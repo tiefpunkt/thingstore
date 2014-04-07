@@ -22,6 +22,7 @@ class Metric(models.Model):
 	thing = models.ForeignKey(Thing, related_name='metrics')
 	name = models.CharField(max_length=255)
 	unit = models.CharField(max_length=64, blank=True)
+	no_interpolation = models.BooleanField(default=False)
 	
 	class Meta:
 		unique_together = (("name","thing"),)
