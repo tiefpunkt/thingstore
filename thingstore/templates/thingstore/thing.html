@@ -73,7 +73,12 @@
 				max: (new Date()).getTime(),
 			},
 			points: { show: false },
-			lines: { show: true },
+			lines: {
+				show: true
+				{% if metric.no_interpolation %}
+					, steps: true
+				{% endif %}
+			},
 			grid: { hoverable: true },
 			tooltip: true,
 			tooltipOpts: {
