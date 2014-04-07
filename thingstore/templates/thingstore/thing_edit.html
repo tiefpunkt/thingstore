@@ -47,7 +47,7 @@
 							<div class="form-group col-sm-4">
 								{% if field.field.widget|fieldtype == "CheckboxInput" %}
 									<label class="checkbox-inline">
-										<input type="checkbox" id="{{ field.id_for_label }}" name="{{ field.html_name }}">
+										{{ field }}
 										{{ field.label }}
 									</label>
 								{% else %}
