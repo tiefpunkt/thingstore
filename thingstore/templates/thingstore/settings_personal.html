@@ -9,18 +9,54 @@
 		{% if next %}
 			<input type="hidden" name="next" value="{{ next }}" />
 		{% endif %}
+		<input type="hidden" name="action" value="change_email" />
 		
 		<div class="form-group">
-			<label for="password" class="col-sm-3 control-label">Password</label>
+			<label for="email" class="col-sm-3 control-label">Email Address</label>
 			<div class="col-sm-9">
-				<input type="password" class="form-control" id="password" name="password" placeholder="Password">
+				<input type="text" class="form-control" id="email" name="email" placeholder="Email address">
 			</div>
 		</div>
 		
 		<div class="form-group">
-			<label for="password_retype" class="col-sm-3 control-label">Retype Password</label>
+			<label for="curr_password" class="col-sm-3 control-label">Current password</label>
 			<div class="col-sm-9">
-				<input type="password" class="form-control" id="password_retype" name="password_retype" placeholder="Retype Password">
+				<input type="password" class="form-control" id="curr_password" name="curr_password" placeholder="Current password">
+			</div>
+		</div>
+		
+		<div class="form-group">
+			<div class="col-sm-offset-3 col-sm-9">
+				<button type="submit" class="btn btn-primary">Change Email Address</button>
+			</div>
+		</div>
+  </form>
+	
+	<h4>Password</h4>
+	<form method="POST" action="" accept-charset="UTF-8" class="form-horizontal" role="form">
+		{% csrf_token %} 
+		{% if next %}
+			<input type="hidden" name="next" value="{{ next }}" />
+		{% endif %}
+		<input type="hidden" name="action" value="change_password" />		
+		<div class="form-group">
+			<label for="curr_password" class="col-sm-3 control-label">Current password</label>
+			<div class="col-sm-9">
+				<input type="password" class="form-control" id="curr_password" name="curr_password" placeholder="Current password">
+			</div>
+		</div>
+		
+		<div class="form-group">
+			<label for="new_password" class="col-sm-3 control-label">New password</label>
+			<div class="col-sm-9">
+				<input type="password" class="form-control" id="new_password" name="new_password" placeholder="New password">
+			</div>
+		</div>
+		
+		<div class="form-group">
+			<label for="new_password_retype" class="col-sm-3 control-label">Retype new password</label>
+			<div class="col-sm-9">
+				<input type="password" class="form-control" id="new_password_retype" name="new_password_retype" placeholder="Retype new password">
 			</div>
 		</div>
 		

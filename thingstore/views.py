@@ -8,6 +8,9 @@ from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.forms.models import inlineformset_factory
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from thingstore.models import Thing, Value, APIKey, Metric
 from thingstore.forms import ThingForm
@@ -104,16 +107,40 @@ def logout_view(request):
 def settings_personal(request):
 	parameters = {}
 	if request.POST:
-		password = request.POST.get('password')
-		password_retype = request.POST.get('password_retype')
-		if password <> password_retype:
-			parameters["error"] = "Please type the same password twice."
-		else:
-			#TODO: Password requirements
-			user = request.user
-			user.set_password(password)
-			user.save()
-			parameters["message"] = "Password successfully changed."
+		action = request.POST.get('action')
+		user = request.user
+		
+		if action == "change_password":
+			curr_password = request.POST.get('curr_password')
+			password = request.POST.get('new_password')
+			password_retype = request.POST.get('new_password_retype')
+			
+			if not user.check_password(curr_password):
+				parameters["error"] = "Please enter your correct current password"
+			elif password <> password_retype:
+				parameters["error"] = "Please type the same password twice."
+			elif len(password) < settings.PASSWORD_MIN_LENGTH:
+				parameters["error"] = "Your password has to be at least " + str(settings.PASSWORD_MIN_LENGTH) + " characters long."
+			else:
+				#TODO: Password requirements
+				user.set_password(password)
+				user.save()
+				parameters["message"] = "Password successfully changed."
+		elif action == "change_email":
+			curr_password = request.POST.get('curr_password')
+			email = request.POST.get('email')
+			
+			if not user.check_password(curr_password):
+				parameters["error"] = "Please enter your correct current password"
+			else:
+				try:
+					validate_email(email)
+				except ValidationError as e:
+					parameters["error"] =  "Please enter a valid email address"
+				else:
+					user.email = email
+					user.save()
+					parameters["message"] = "Email address successfully changed."
 		
 	parameters["tab"] = "personal"
 	return render(request, 'thingstore/settings_personal.html', parameters)	
